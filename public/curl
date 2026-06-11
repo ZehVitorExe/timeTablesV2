@@ -1,0 +1,44 @@
+## eventos
+# list
+curl -X GET http://localhost:3001/api/events
+
+# create
+curl -X POST http://localhost:3001/api/events \
+-H "Content-Type: application/json" \
+-d '{
+  "title": "Conferência Tech 2026",
+  "description": "O maior evento de tecnologia e desenvolvimento de software.",
+  "startDate": "2026-06-15T09:00:00.000Z",
+  "endDate": "2026-06-18T18:00:00.000Z"
+}'
+
+## sessão
+# list
+curl -X GET http://localhost:3001/api/sessions
+
+# create
+curl -X POST http://localhost:3001/api/sessions \
+-H "Content-Type: application/json" \
+-d '{ "title": "A Revolução do Prisma 7 no Backend",
+"description": "Explorando a nova arquitetura baseada em Driver Adapters e performance Wasm.",
+"startTime": "2026-10-16T14:00:00Z",
+"endTime": "2026-10-16T15:00:00Z",
+"eventId": "event-devconf-2026",
+"stageId": "stage-alpha",
+"trackId": "track-backend",
+"speakerIds": ["speaker-john"]
+}'
+
+## Palestrante
+# list
+curl -X GET http://localhost:3001/api/speakers
+
+# create
+curl -X POST http://localhost:3001/api/speakers \
+-H "Content-Type: application/json" \
+-d '{
+  "name": "Alexandre Silva",
+  "bio": "Desenvolvedor Full Stack com mais de 10 anos de experiência e entusiasta de arquitetura de software.",
+  "avatar": "https://github.com/alexandre.png"
+}'
+
