@@ -1,5 +1,17 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '../../../lib/prisma'; 
+
+
+export async function GET() {
+  try {
+    const events = await prisma.event.findMany({
+      include: { _count: { select: { sessions: true } } }
+    });
+    return NextResponse.json(events);
+  } catch (error) {
+    return NextResponse.json({ error: 'Erro ao buscar eventos.' }, { status: 500 });
+  }
+}
 
 export async function POST(request) {
   try {
@@ -9,16 +21,15 @@ export async function POST(request) {
     const start = new Date(startTime);
     const end = new Date(endTime);
 
-    // 1. Validação básica de horário
     if (start >= end) {
       return NextResponse.json({ error: 'O horário de término deve ser após o início.' }, { status: 400 });
     }
 
-    // 2. Validação: Evitar choque de horário no mesmo Palco/Sala
     const stageConflict = await prisma.session.findFirst({
       where: {
         stageId,
-        NOT: { startTime: { gte: end }, endTime: { lte: start } },
+        startTime: { lt: end },  
+        endTime: { gt: start },
       },
     });
 
@@ -26,13 +37,13 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Este palco já possui uma sessão agendada neste horário.' }, { status: 409 });
     }
 
-    // 3. Validação: Evitar choque de horário para o palestrante
     if (speakerIds && speakerIds.length > 0) {
       const speakerConflict = await prisma.speakerSession.findFirst({
         where: {
           speakerId: { in: speakerIds },
           session: {
-            NOT: { startTime: { gte: end }, endTime: { lte: start } },
+            startTime: { lt: end },
+            endTime: { gt: start },
           },
         },
       });
@@ -42,7 +53,7 @@ export async function POST(request) {
       }
     }
 
-    // 4. Criação da sessão
+    // Criação de sessão
     const newSession = await prisma.session.create({
       data: {
         title,
@@ -62,9 +73,8 @@ export async function POST(request) {
     });
 
     return NextResponse.json(newSession, { status: 201 });
-  }  catch (error) {
-  console.error("❌ ERRO REAL DA API:", error); // Adicione esta linha temporariamente para ver o log no Next.js
-  return NextResponse.json({ error: 'Erro ao criar sessão.' }, { status: 500 });
-}
-
+  } catch (error) {
+    console.error("[ERROR]: ", error);
+    return NextResponse.json({ error: 'Erro ao criar sessão.' }, { status: 500 });
+  }
 }

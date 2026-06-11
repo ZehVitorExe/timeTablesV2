@@ -1,42 +1,44 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '../../../lib/prisma'; 
 
-// PUT: Atualizar uma sessão existente
-export async function PUT(request, { params }) {
+
+export async function GET() {
   try {
-    const { id } = params;
-    const body = await request.json();
-    const { title, description, startTime, endTime, stageId, trackId } = body;
-
-    const updatedSession = await prisma.session.update({
-      where: { id },
-      data: {
-        title,
-        description,
-        startTime: startTime ? new Date(startTime) : undefined,
-        endTime: endTime ? new Date(endTime) : undefined,
-        stageId,
-        trackId,
-      },
-    });
-
-    return NextResponse.json(updatedSession);
+    const events = await prisma.speaker.findMany();
+    return NextResponse.json(events);
   } catch (error) {
-    return NextResponse.json({ error: 'Erro ao atualizar sessão.' }, { status: 500 });
+    return NextResponse.json({ error: 'Erro ao buscar eventos.' }, { status: 500 });
   }
 }
 
-// DELETE: Remover uma sessão
-export async function DELETE(request, { params }) {
+export async function POST(request) {
   try {
-    const { id } = params;
+    const body = await request.json();
+    const { name, bio, avatar } = body;
 
-    await prisma.session.delete({
-      where: { id },
+    if (!name) {
+      return NextResponse.json(
+        { error: 'O nome do palestrante é obrigatório.' }, 
+        { status: 400 }
+      );
+    }
+
+    //  Criação do palestrante
+    const newSpeaker = await prisma.speaker.create({
+      data: {
+        name,
+        bio: bio || null,
+        avatar: avatar || null
+      }
     });
 
-    return NextResponse.json({ message: 'Sessão removida com sucesso.' });
+    return NextResponse.json(newSpeaker, { status: 201 });
+
   } catch (error) {
-    return NextResponse.json({ error: 'Erro ao remover sessão.' }, { status: 500 });
+    console.error("[POST_SPEAKER_ERROR]: ", error);
+    return NextResponse.json(
+      { error: 'Erro interno ao criar o palestrante.' }, 
+      { status: 500 }
+    );
   }
 }

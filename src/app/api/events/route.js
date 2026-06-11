@@ -4,9 +4,7 @@ import { prisma } from '@/lib/prisma';
 // GET: Listar todos os eventos
 export async function GET() {
   try {
-    const events = await prisma.event.findMany({
-      include: { _count: { select: { sessions: true } } }
-    });
+    const events = await prisma.event.findMany();
     return NextResponse.json(events);
   } catch (error) {
     return NextResponse.json({ error: 'Erro ao buscar eventos.' }, { status: 500 });
