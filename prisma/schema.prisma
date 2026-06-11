@@ -7,6 +7,26 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id           String      @id @default(uuid())
+  name         String
+  email        String      @unique
+  password     String      // Senha criptografada
+  token        String?     @unique // Token de sessão atual (ex: gerado no login)
+  tokenExpires DateTime?   // Data de expiração do token
+  createdEvents Event[]     @relation("EventOrganizer")
+  joinedEvents  EventUser[]
+}
+
+model EventUser {
+  eventId  String
+  userId   String
+  joinedAt DateTime @default(now())
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@id([eventId, userId])
+}
+
 model Event {
   id          String    @id @default(uuid())
   title       String
@@ -17,6 +37,9 @@ model Event {
   tracks      Track[]
   sessions    Session[]
   createdAt   DateTime  @default(now())
+  userId      String
+  organizer   User        @relation("EventOrganizer", fields: [userId], references: [id], onDelete: Cascade)
+  attendees   EventUser[]
 }
 
 model Stage {

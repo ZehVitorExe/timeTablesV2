@@ -1,6 +1,7 @@
 import { createPool } from 'mariadb';
+import bcrypt from 'bcryptjs';
 
-// 1. Criamos a conexão direta com o MySQL usando os dados validados pelo seu log
+// 1. Criamos a conexão direta com o MySQL usando os dados da variável de ambiente
 const urlString = process.env.DATABASE_URL || '';
 const match = urlString.match(/mysql:\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/(.+)/);
 
@@ -30,14 +31,26 @@ async function main() {
   await pool.query('TRUNCATE TABLE Speaker;');
   await pool.query('TRUNCATE TABLE Track;');
   await pool.query('TRUNCATE TABLE Stage;');
+  await pool.query('TRUNCATE TABLE EventUser;'); // ADICIONADO: Limpa participantes
   await pool.query('TRUNCATE TABLE Event;');
+  await pool.query('TRUNCATE TABLE User;');      // ADICIONADO: Limpa usuários
   await pool.query('SET FOREIGN_KEY_CHECKS = 1;');
 
-  console.log('🌱 Criando o evento principal...');
+  console.log('🌱 Criando o usuário organizador padrão...');
+  const userId = 'user-admin-organizer';
+  // Criptografamos uma senha padrão segura para testes ("admin123")
+  const hashedPassword = await bcrypt.hash('admin123', 10);
+  
+  await pool.query(
+    'INSERT INTO User (id, name, email, password) VALUES (?, ?, ?, ?);',
+    [userId, 'Administrador do Evento', 'admin@devconf.com', hashedPassword]
+  );
+
+  console.log('🌱 Criando o evento principal (vinculado ao organizador)...');
   const eventId = 'event-devconf-2026';
   await pool.query(
-    'INSERT INTO Event (id, title, description, startDate, endDate, createdAt) VALUES (?, ?, ?, ?, ?, NOW());',
-    [eventId, 'DevConference 2026', 'O maior evento de desenvolvimento de software.', '2026-10-15 09:00:00', '2026-10-17 18:00:00']
+    'INSERT INTO Event (id, title, description, startDate, endDate, userId, createdAt) VALUES (?, ?, ?, ?, ?, ?, NOW());',
+    [eventId, 'DevConference 2026', 'O maior evento de tecnologia.', '2026-10-15 09:00:00', '2026-10-17 18:00:00', userId] // ADICIONADO: userId
   );
 
   console.log('🌱 Criando os palcos (Stages)...');
@@ -54,7 +67,7 @@ async function main() {
   const speakerJohnId = 'speaker-john';
   await pool.query(
     'INSERT INTO Speaker (id, name, bio, avatar) VALUES (?, ?, ?, ?);',
-    [speakerJohnId, 'John Doe', 'Engenheiro de Software Principal.', 'https://unsplash.com']
+    [speakerJohnId, 'John Doe', 'Engenheiro de Software Principal.', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb']
   );
 
   console.log('🌱 Criando as sessões (Cronograma)...');
@@ -64,8 +77,11 @@ async function main() {
     [sessionId, 'Arquitetura de APIs de Alta Performance', 'Como estruturar backends escaláveis usando Node.js.', '2026-10-15 10:00:00', '2026-10-15 11:00:00', eventId, stageAlphaId, trackBackendId]
   );
 
-  // Cria o vínculo N:N na tabela intermediária
+  // Cria o vínculo N:N na tabela intermediária de palestrantes
   await pool.query('INSERT INTO SpeakerSession (speakerId, sessionId) VALUES (?, ?);', [speakerJohnId, sessionId]);
+
+  console.log('🌱 Inscrevendo o usuário no próprio evento (EventUser)...');
+  await pool.query('INSERT INTO EventUser (eventId, userId) VALUES (?, ?);', [eventId, userId]);
 
   console.log('✨ Banco de dados populado com sucesso pelo driver nativo!');
 }
