@@ -1,44 +1,29 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '../../../lib/prisma'; 
+import { prismaSpeakerRepository } from '@/infra/prismaSpeakerRepository';
+import { createSpeaker } from '@/application/createSpeaker';
 
-
+// GET: Listar todos os palestrantes
 export async function GET() {
   try {
-    const events = await prisma.speaker.findMany();
-    return NextResponse.json(events);
+    const speakers = await prismaSpeakerRepository.listAll();
+    return NextResponse.json(speakers);
   } catch (error) {
-    return NextResponse.json({ error: 'Erro ao buscar eventos.' }, { status: 500 });
+    return NextResponse.json({ error: 'Erro ao buscar palestrantes.' }, { status: 500 });
   }
 }
 
+// POST: Criar um novo palestrante usando use-case
 export async function POST(request) {
   try {
     const body = await request.json();
     const { name, bio, avatar } = body;
 
-    if (!name) {
-      return NextResponse.json(
-        { error: 'O nome do palestrante é obrigatório.' }, 
-        { status: 400 }
-      );
-    }
-
-    //  Criação do palestrante
-    const newSpeaker = await prisma.speaker.create({
-      data: {
-        name,
-        bio: bio || null,
-        avatar: avatar || null
-      }
-    });
+    const newSpeaker = await createSpeaker({ repository: prismaSpeakerRepository }, { name, bio, avatar });
 
     return NextResponse.json(newSpeaker, { status: 201 });
-
   } catch (error) {
-    console.error("[POST_SPEAKER_ERROR]: ", error);
-    return NextResponse.json(
-      { error: 'Erro interno ao criar o palestrante.' }, 
-      { status: 500 }
-    );
+    const status = error?.status || 500;
+    const message = error?.message || 'Erro ao criar palestrante.';
+    return NextResponse.json({ error: message }, { status });
   }
 }
