@@ -1,6 +1,6 @@
 export async function createSpeaker({ repository }, { name, bio, avatar }) {
   if (!name) {
-    const err = new Error('O nome do palestrante é obrigatório.');
+    const err = new Error('Nome do palestrante é obrigatório.');
     err.status = 400;
     throw err;
   }

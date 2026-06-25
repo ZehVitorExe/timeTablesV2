@@ -1,5 +1,5 @@
-describe('Sessions API (E2E)', () => {
-  it('lists sessions (requires auth)', () => {
+describe('API de Sessões (E2E)', () => {
+  it('lista sessões (requer autenticação)', () => {
     const user = {
       name: 'Session User',
       email: `session+${Date.now()}@example.test`,

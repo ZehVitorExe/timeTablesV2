@@ -1,8 +1,8 @@
 import { createSpeaker } from '../createSpeaker.js';
 import { jest } from '@jest/globals';
 
-describe('createSpeaker use-case', () => {
-  test('creates speaker when valid', async () => {
+describe('createSpeaker', () => {
+  test('cria palestrante quando válido', async () => {
     const mockRepo = { create: jest.fn().mockResolvedValue({ id: '1', name: 'Alex' }) };
 
     const result = await createSpeaker({ repository: mockRepo }, { name: 'Alex', bio: 'Bio', avatar: 'url' });
@@ -11,10 +11,10 @@ describe('createSpeaker use-case', () => {
     expect(result).toEqual({ id: '1', name: 'Alex' });
   });
 
-  test('throws 400 when name missing', async () => {
+  test('lança 400 quando nome ausente', async () => {
     const mockRepo = { create: jest.fn() };
 
-    await expect(createSpeaker({ repository: mockRepo }, { name: '', bio: 'x' })).rejects.toThrow('O nome do palestrante é obrigatório.');
+    await expect(createSpeaker({ repository: mockRepo }, { name: '', bio: 'x' })).rejects.toThrow('Nome do palestrante é obrigatório.');
     expect(mockRepo.create).not.toHaveBeenCalled();
   });
 });

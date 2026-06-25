@@ -1,5 +1,5 @@
-describe('Auth API (E2E)', () => {
-  it('registers and logs in a user', () => {
+describe('API de Autenticação (E2E)', () => {
+  it('registra e faz login de um usuário', () => {
     const user = {
       name: 'E2E User',
       email: `e2e+${Date.now()}@example.test`,

@@ -1,8 +1,8 @@
 import { createSession } from '../createSession.js';
 import { jest } from '@jest/globals';
 
-describe('createSession use-case', () => {
-  test('creates session when no conflicts', async () => {
+describe('createSession', () => {
+  test('cria sessão quando não há conflitos', async () => {
     const mockRepo = {
       findStageOverlap: jest.fn().mockResolvedValue(null),
       findSpeakerOverlap: jest.fn().mockResolvedValue(null),
@@ -24,7 +24,7 @@ describe('createSession use-case', () => {
     expect(result).toEqual({ id: 's1', title: 'Sessão' });
   });
 
-  test('throws 409 when stage conflict', async () => {
+  test('lança 409 quando há conflito de palco', async () => {
     const mockRepo = {
       findStageOverlap: jest.fn().mockResolvedValue({ id: 'existing' }),
       findSpeakerOverlap: jest.fn(),
@@ -37,12 +37,12 @@ describe('createSession use-case', () => {
       endTime: '2026-01-01T11:00:00Z',
       eventId: 'e1',
       stageId: 'st1',
-    })).rejects.toThrow('Este palco já possui uma sessão agendada neste horário.');
+    })).rejects.toThrow('Este palco já tem uma sessão neste horário.');
 
     expect(mockRepo.create).not.toHaveBeenCalled();
   });
 
-  test('throws 409 when speaker conflict', async () => {
+  test('lança 409 quando há conflito de palestrante', async () => {
     const mockRepo = {
       findStageOverlap: jest.fn().mockResolvedValue(null),
       findSpeakerOverlap: jest.fn().mockResolvedValue({ id: 'conflict' }),
@@ -56,7 +56,7 @@ describe('createSession use-case', () => {
       eventId: 'e1',
       stageId: 'st1',
       speakerIds: ['sp1']
-    })).rejects.toThrow('Um ou mais palestrantes já estão alocados neste horário.');
+    })).rejects.toThrow('Um ou mais palestrantes estão ocupados neste horário.');
 
     expect(mockRepo.create).not.toHaveBeenCalled();
   });

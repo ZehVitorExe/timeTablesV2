@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import { prismaSessionRepository } from '@/infra/prismaSessionRepository';
 import { createSession } from '@/application/createSession';
+import { resolveUserIdFromRequest } from '@/services/authService';
 
-// GET: Listar todas as sessões
+// Listar todas as sessões
 export async function GET() {
   try {
     const sessions = await prismaSessionRepository.listAll();
@@ -12,11 +13,20 @@ export async function GET() {
   }
 }
 
-// POST: Criar uma nova sessão usando o use-case
+// criar uma nova sessão
 export async function POST(request) {
   try {
     const body = await request.json();
     const { title, description, startTime, endTime, eventId, stageId, trackId, speakerIds } = body;
+
+    let resolvedUserId = request.headers.get('x-user-id');
+    if (!resolvedUserId) {
+      resolvedUserId = await resolveUserIdFromRequest(request);
+    }
+
+    if (!resolvedUserId) {
+      return new NextResponse(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { 'content-type': 'application/json' } });
+    }
 
     const newSession = await createSession({ repository: prismaSessionRepository }, { title, description, startTime, endTime, eventId, stageId, trackId, speakerIds });
 

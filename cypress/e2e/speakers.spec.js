@@ -1,5 +1,5 @@
-describe('Speakers API (E2E)', () => {
-  it('creates and lists speakers (requires auth)', () => {
+describe('API de Palestrantes (E2E)', () => {
+  it('cria e lista palestrantes (requer autenticação)', () => {
     const user = {
       name: 'Speaker User',
       email: `speaker+${Date.now()}@example.test`,

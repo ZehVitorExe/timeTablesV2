@@ -1,5 +1,5 @@
-describe('Events API (E2E)', () => {
-  it('registers user, logs in, then POST /api/events returns 201 or 409', () => {
+describe('API de Eventos (E2E)', () => {
+  it('registra usuário, faz login e POST /api/events retorna 201 ou 409', () => {
     const user = {
       name: 'Cypress User',
       email: `cypress+${Date.now()}@example.test`,

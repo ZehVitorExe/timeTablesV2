@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import { prismaEventRepository } from '@/infra/prismaEventRepository';
 import { createEvent } from '@/application/createEvent';
-import { prisma } from '@/lib/prisma';
+import { resolveUserIdFromRequest } from '@/services/authService';
 
-// GET: Listar todos os eventos
+// Listar todos os eventos
 export async function GET() {
   try {
     const events = await prismaEventRepository.listAll();
@@ -13,21 +13,19 @@ export async function GET() {
   }
 }
 
-// POST: Criar um novo evento (usa use-case)
+// Criar um novo evento
 export async function POST(request) {
   try {
     const body = await request.json();
     const { title, description, startDate, endDate, userId } = body;
 
-    // Try to determine userId from Authorization header if not provided
-    let resolvedUserId = userId;
+    let resolvedUserId = userId || request.headers.get('x-user-id');
     if (!resolvedUserId) {
-      const authHeader = request.headers.get('authorization') || '';
-      const token = authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
-      if (token) {
-        const user = await prisma.user.findFirst({ where: { token, tokenExpires: { gt: new Date() } } });
-        if (user) resolvedUserId = user.id;
-      }
+      resolvedUserId = await resolveUserIdFromRequest(request);
+    }
+
+    if (!resolvedUserId) {
+      return new NextResponse(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { 'content-type': 'application/json' } });
     }
 
     const newEvent = await createEvent({ repository: prismaEventRepository }, { title, description, startDate, endDate, userId: resolvedUserId });

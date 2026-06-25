@@ -1,8 +1,8 @@
 import { createEvent } from '../createEvent.js';
 import { jest } from '@jest/globals';
 
-describe('createEvent use-case', () => {
-  test('creates event when no overlap', async () => {
+describe('createEvent', () => {
+  test('cria evento quando não há conflito de horário', async () => {
     const mockRepo = {
       findOverlapping: jest.fn().mockResolvedValue(null),
       create: jest.fn().mockResolvedValue({ id: '1', title: 'X' }),
@@ -15,7 +15,7 @@ describe('createEvent use-case', () => {
     expect(result).toEqual({ id: '1', title: 'X' });
   });
 
-  test('throws 409 when overlap found', async () => {
+  test('lança 409 quando há sobreposição', async () => {
     const mockRepo = {
       findOverlapping: jest.fn().mockResolvedValue({ id: 'existing' }),
       create: jest.fn(),
@@ -23,7 +23,7 @@ describe('createEvent use-case', () => {
 
     await expect(
       createEvent({ repository: mockRepo }, { title: 'X', startDate: '2026-01-01T10:00:00Z', endDate: '2026-01-01T12:00:00Z' })
-    ).rejects.toThrow('Já existe um evento nesse período.');
+    ).rejects.toThrow('Já existe um evento neste horário.');
 
     expect(mockRepo.create).not.toHaveBeenCalled();
   });

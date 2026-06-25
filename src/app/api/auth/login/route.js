@@ -53,6 +53,7 @@ console.log("Usuário encontrado no banco:", user);
     return NextResponse.json({
       message: 'Login realizado com sucesso!',
       token,
+      expiresAt: tokenExpires.toISOString(),
       user: {
         id: user.id,
         name: user.name,
